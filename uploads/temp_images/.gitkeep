@@ -1,0 +1,2 @@
+# Temporary image upload directory — git-ignored
+# Images are stored here before being uploaded to AWS S3
