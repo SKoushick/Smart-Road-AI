@@ -21,6 +21,7 @@ from utils.dashboard_utils import (
 )
 from utils.map_utils import build_heatmap
 from config.settings import SEVERITY_HEX
+from utils.theme_utils import inject_global_css
 
 st.set_page_config(
     page_title="Analytics Dashboard | Smart Road Monitor",
@@ -29,81 +30,118 @@ st.set_page_config(
 )
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
+inject_global_css()
+
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-*, *::before, *::after { box-sizing: border-box; }
-html, body, [data-testid="stAppViewContainer"] {
-    background: #0a0f1e !important;
-    font-family: 'Inter', sans-serif !important;
-    color: #e2e8f0 !important;
-}
-[data-testid="stSidebar"] { background: #0d1528 !important; }
-h1,h2,h3 { color: #f1f5f9 !important; }
-
-.page-header {
-    background: linear-gradient(135deg, #0f2447 0%, #1a0a2e 100%);
-    border: 1px solid #334155;
-    border-radius: 20px;
-    padding: 32px 40px;
+/* ── Analytics Dashboard Specific ── */
+.dash-header {
+    background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 3px solid #6366f1;
+    border-radius: 16px;
+    padding: 30px 40px;
     margin-bottom: 28px;
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-.page-header::after {
+.dash-header::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    animation: rotate 20s linear infinite;
+}
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+
+.dash-header::after {
     content: '📊';
     position: absolute;
-    right: 40px; top: 20px;
-    font-size: 5rem;
-    opacity: 0.12;
+    right: 40px; top: 10px;
+    font-size: 6rem;
+    opacity: 0.08;
 }
 
 .kpi-card {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
-    padding: 22px 18px;
+    padding: 24px 20px;
     text-align: center;
-    transition: transform 0.25s, border-color 0.25s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 .kpi-card::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 3px;
+    height: 4px;
     background: var(--accent, #60a5fa);
+    box-shadow: 0 0 10px var(--accent, #60a5fa);
     border-radius: 16px 16px 0 0;
 }
-.kpi-card:hover { transform: translateY(-5px); border-color: #475569; }
-.kpi-num { font-size: 2.5rem; font-weight: 800; line-height: 1.1; }
-.kpi-lbl { font-size: 0.78rem; color: #64748b; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-.kpi-delta { font-size: 0.82rem; margin-top: 6px; }
+.kpi-card:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.1);
+}
+.kpi-card:hover::after {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 60%);
+    opacity: 0.1;
+    pointer-events: none;
+}
+.kpi-num { 
+    font-size: 2.8rem; 
+    font-weight: 900; 
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(255,255,255,0.1);
+}
+.kpi-lbl { 
+    font-size: 0.82rem; 
+    color: #94a3b8; 
+    margin-top: 8px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.08em; 
+    font-weight: 700;
+}
 
 .chart-card {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
-    padding: 22px 20px;
-    margin-bottom: 20px;
+    padding: 24px 22px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transition: all 0.3s;
 }
-.section-divider {
-    border: none;
-    border-top: 1px solid #1e293b;
-    margin: 24px 0;
+.chart-card:hover {
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
 }
+
 .insight-pill {
     display: inline-block;
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 50px;
-    padding: 6px 16px;
-    font-size: 0.83rem;
-    color: #94a3b8;
+    padding: 8px 18px;
+    font-size: 0.85rem;
+    color: #cbd5e1;
     margin: 4px;
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s;
 }
-.insight-pill span { font-weight: 700; }
+.insight-pill:hover { transform: scale(1.05); border-color: rgba(255,255,255,0.2); }
+.insight-pill span { font-weight: 800; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -130,11 +168,10 @@ avg_score = (
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div class="page-header">
-    <h1 style='margin:0; font-size:2rem;'>Infrastructure Analytics Dashboard</h1>
-    <p style='color:#94a3b8; margin:6px 0 0 0; font-size:1rem;'>
-        Real-time insights into road damage trends, severity distribution,
-        and repair performance across India.
+<div class="dash-header">
+    <h1 style='margin:0; font-size:2.2rem; color:#fff; font-weight:800; letter-spacing:0.02em;'>Infrastructure Analytics Hub</h1>
+    <p style='color:#a5b4fc; margin:8px 0 0 0; font-size:1.1rem;'>
+        Real-time telemetry and pattern recognition for the Smart Road network.
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -262,7 +299,7 @@ with st.expander("📄 Raw Data Table", expanded=False):
         ]
         existing = [c for c in display_cols if c in df.columns]
         st.dataframe(
-            df[existing].rename(columns={
+            df[existing].rename(columns={  # type: ignore
                 "id": "ID", "name": "Reporter",
                 "location_name": "Location",
                 "severity_level": "Severity",
@@ -272,7 +309,7 @@ with st.expander("📄 Raw Data Table", expanded=False):
             use_container_width=True,
             hide_index=True,
         )
-        csv = df.to_csv(index=False).encode("utf-8")
+        csv = df.to_csv(index=False).encode("utf-8")  # type: ignore
         st.download_button(
             "⬇️ Download Full Dataset",
             data=csv,

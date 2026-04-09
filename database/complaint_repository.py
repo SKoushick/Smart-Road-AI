@@ -1,162 +1,151 @@
-
 import os
 import sys
 from typing import Optional, List, Dict, Any
-from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from database.db_connection import get_connection, init_db
+from utils.supabase_client import supabase, int_to_uuid, uuid_to_int
 
-# Ensure schema exists at import time
-init_db()
-
+def _map_row(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Dynamically map Supabase columns back to legacy UI columns so the dashboards don't crash."""
+    if d:
+        d["date"] = d.get("created_at", "")
+        d["assigned_officer_id"] = uuid_to_int(d.get("assigned_officer", None))
+    return d
 
 # ──────────────────────────────────────────────
 # INSERT
 # ──────────────────────────────────────────────
 
 def insert_complaint(data: Dict[str, Any]) -> int:
-    """Insert a new complaint record and return its ID."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO complaints
-            (name, email, phone, location_name, latitude, longitude,
-             description, image_path, image_url, severity_level,
-             severity_score, pothole_detected, status, date)
-        VALUES
-            (:name, :email, :phone, :location_name, :latitude, :longitude,
-             :description, :image_path, :image_url, :severity_level,
-             :severity_score, :pothole_detected, :status, :date)
-    """, data)
-    conn.commit()
-    last_id = cursor.lastrowid
-    conn.close()
-    return last_id
-
+    try:
+        response = supabase.table("complaints").insert(data).execute()
+        return response.data[0]["id"] if response.data else 0
+    except Exception:
+        return 0
 
 # ──────────────────────────────────────────────
 # FETCH
 # ──────────────────────────────────────────────
 
 def fetch_all_complaints() -> List[Dict[str, Any]]:
-    """Return all complaints as a list of dicts."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM complaints ORDER BY date DESC")
-    rows = [dict(r) for r in cursor.fetchall()]
-    conn.close()
-    return rows
-
+    response = supabase.table("complaints").select("*").order("created_at", desc=True).execute()
+    return [_map_row(d) for d in (response.data or [])]
 
 def fetch_complaint_by_id(complaint_id: int) -> Optional[Dict[str, Any]]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM complaints WHERE id = ?", (complaint_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
-
+    response = supabase.table("complaints").select("*").eq("id", complaint_id).execute()
+    return _map_row(response.data[0]) if response.data else None
 
 def fetch_complaints_by_status(status: str) -> List[Dict[str, Any]]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM complaints WHERE status = ? ORDER BY date DESC",
-        (status,)
-    )
-    rows = [dict(r) for r in cursor.fetchall()]
-    conn.close()
-    return rows
+    response = supabase.table("complaints").select("*").eq("status", status).order("created_at", desc=True).execute()
+    return [_map_row(d) for d in (response.data or [])]
 
+def fetch_complaints_by_officer(officer_id: int) -> List[Dict[str, Any]]:
+    uid = int_to_uuid(officer_id)
+    response = supabase.table("complaints").select("*").eq("assigned_officer", uid).order("created_at", desc=True).execute()
+    return [_map_row(d) for d in (response.data or [])]
 
 # ──────────────────────────────────────────────
 # UPDATE
 # ──────────────────────────────────────────────
 
-def update_complaint_status(
-    complaint_id: int,
-    new_status: str,
-    resolved_by: str = "",
-    notes: str = "",
-) -> bool:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE complaints
-        SET status = ?, resolved_by = ?, notes = ?
-        WHERE id = ?
-    """, (new_status, resolved_by, notes, complaint_id))
-    conn.commit()
-    updated = cursor.rowcount > 0
-    conn.close()
-    return updated
+def update_complaint_status(complaint_id: int, new_status: str, resolved_by: str = "", notes: str = "") -> bool:
+    try:
+        supabase.table("complaints").update({
+            "status": new_status,
+            "resolved_by": resolved_by,
+            "notes": notes
+        }).eq("id", complaint_id).execute()
+        return True
+    except Exception:
+        return False
 
+def update_complaint_assignment(complaint_id: int, officer_id: int, assigned_time: str) -> bool:
+    uid = int_to_uuid(officer_id)
+    try:
+        # Try full update including status 'In Progress' (to satisfy Supabase CHECK constraints)
+        supabase.table("complaints").update({
+            "assigned_officer": uid,
+            "assigned_time": assigned_time,
+            "status": "In Progress",
+            "repair_status": "Pending"
+        }).eq("id", complaint_id).execute()
+        return True
+    except Exception:
+        try:
+            # Fallback: Stripping optional columns if they don't exist in Supabase
+            supabase.table("complaints").update({
+                "assigned_officer": uid,
+                "status": "In Progress"
+            }).eq("id", complaint_id).execute()
+            return True
+        except Exception as fallback_err:
+            print("CRITICAL DISPATCH FAILURE:", fallback_err)
+            return False
+
+def update_complaint_repair_status(complaint_id: int, new_status: str, repair_status: str) -> bool:
+    try:
+        supabase.table("complaints").update({
+            "status": new_status,
+            "repair_status": repair_status
+        }).eq("id", complaint_id).execute()
+        return True
+    except Exception:
+        try:
+            # Fallback: Just update 'status' if 'repair_status' column doesn't exist
+            supabase.table("complaints").update({
+                "status": new_status
+            }).eq("id", complaint_id).execute()
+            return True
+        except Exception:
+            return False
 
 # ──────────────────────────────────────────────
 # DELETE
 # ──────────────────────────────────────────────
 
 def delete_complaint(complaint_id: int) -> bool:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM complaints WHERE id = ?", (complaint_id,))
-    conn.commit()
-    deleted = cursor.rowcount > 0
-    conn.close()
-    return deleted
-
+    try:
+        supabase.table("complaints").delete().eq("id", complaint_id).execute()
+        return True
+    except Exception:
+        return False
 
 # ──────────────────────────────────────────────
 # ANALYTICS HELPERS
 # ──────────────────────────────────────────────
 
 def fetch_severity_counts() -> Dict[str, int]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT severity_level, COUNT(*) as cnt FROM complaints GROUP BY severity_level"
-    )
-    result = {row["severity_level"]: row["cnt"] for row in cursor.fetchall()}
-    conn.close()
-    return result
-
+    data = fetch_all_complaints()
+    counts = {}
+    for row in data:
+        s = row.get("severity_level")
+        counts[s] = counts.get(s, 0) + 1
+    return counts
 
 def fetch_status_counts() -> Dict[str, int]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT status, COUNT(*) as cnt FROM complaints GROUP BY status"
-    )
-    result = {row["status"]: row["cnt"] for row in cursor.fetchall()}
-    conn.close()
-    return result
-
+    data = fetch_all_complaints()
+    counts = {}
+    for row in data:
+        s = row.get("status")
+        counts[s] = counts.get(s, 0) + 1
+    return counts
 
 def fetch_monthly_counts() -> List[Dict[str, Any]]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT strftime('%Y-%m', date) AS month, COUNT(*) AS cnt
-        FROM complaints
-        GROUP BY month
-        ORDER BY month
-    """)
-    rows = [dict(r) for r in cursor.fetchall()]
-    conn.close()
-    return rows
-
+    data = fetch_all_complaints()
+    months = {}
+    for row in data:
+        date_str = row.get("date")
+        if date_str and len(date_str) >= 7:
+            m = date_str[:7]
+            months[m] = months.get(m, 0) + 1
+    return [{"month": k, "cnt": v} for k, v in sorted(months.items())]
 
 def fetch_location_counts() -> List[Dict[str, Any]]:
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT location_name, COUNT(*) AS cnt
-        FROM complaints
-        GROUP BY location_name
-        ORDER BY cnt DESC
-        LIMIT 15
-    """)
-    rows = [dict(r) for r in cursor.fetchall()]
-    conn.close()
-    return rows
+    data = fetch_all_complaints()
+    locs = {}
+    for row in data:
+        loc = row.get("location_name")
+        if loc:
+            locs[loc] = locs.get(loc, 0) + 1
+    sorted_locs = sorted(locs.items(), key=lambda x: x[1], reverse=True)[:15]
+    return [{"location_name": k, "cnt": v} for k, v in sorted_locs]

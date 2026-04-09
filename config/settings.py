@@ -1,5 +1,8 @@
-
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ===========================================================
 # Smart Road Infrastructure Monitoring System - Settings
@@ -17,15 +20,15 @@ DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "database", "
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads", "temp_images")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# --- AWS S3 (optional – set via environment variables or .env) ---
-AWS_ACCESS_KEY_ID     = os.getenv("AWS_ACCESS_KEY_ID", "")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
-AWS_REGION            = os.getenv("AWS_REGION", "ap-south-1")
-S3_BUCKET_NAME        = os.getenv("S3_BUCKET_NAME", "smart-road-images")
+
+
+# --- Email Notifications (SendGrid) ---
+SENDGRID_API_KEY      = os.getenv("SENDGRID_API_KEY", "")
+SENDGRID_SENDER_EMAIL = os.getenv("SENDGRID_SENDER_EMAIL", "")
 
 # --- Authentication ---
-GOVT_USERNAME = os.getenv("GOVT_USERNAME", "admin")
-GOVT_PASSWORD = os.getenv("GOVT_PASSWORD", "admin123")
+GOVT_USERNAME = os.getenv("GOVT_USERNAME", "adminsmartroad@gmail.com")
+GOVT_PASSWORD = os.getenv("GOVT_PASSWORD", "Hindusthan@63")
 GOVT_PASSKEY  = os.getenv("GOVT_PASSKEY",  "SMARTROAD2024")
 
 # --- AI Model ---

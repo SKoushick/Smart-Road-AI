@@ -15,10 +15,7 @@ from datetime import datetime
 from typing import Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from config.settings import (
-    UPLOAD_DIR, S3_BUCKET_NAME,
-    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION,
-)
+from config.settings import UPLOAD_DIR
 
 # ── Optional libraries ─────────────────────────────────────────────────────
 try:
@@ -27,12 +24,7 @@ try:
 except ImportError:
     CV2_AVAILABLE = False
 
-try:
-    import boto3
-    from botocore.exceptions import BotoCoreError, ClientError
-    BOTO3_AVAILABLE = True
-except ImportError:
-    BOTO3_AVAILABLE = False
+
 
 try:
     from PIL import Image as PILImage
@@ -88,38 +80,7 @@ def preprocess_image(image_path: str, target_size: Tuple[int, int] = (640, 480))
     return image_path
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# AWS S3 upload
-# ──────────────────────────────────────────────────────────────────────────────
-
-def upload_to_s3(image_path: str) -> Optional[str]:
-    """
-    Upload the image to S3 and return the public URL.
-    Returns None if S3 credentials are not configured or upload fails.
-    """
-    if not BOTO3_AVAILABLE:
-        return None
-    if not (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY):
-        return None
-
-    try:
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-            region_name=AWS_REGION,
-        )
-        key = f"complaints/{os.path.basename(image_path)}"
-        s3.upload_file(
-            image_path,
-            S3_BUCKET_NAME,
-            key,
-            ExtraArgs={"ContentType": "image/jpeg"},
-        )
-        url = f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{key}"
-        return url
-    except Exception:
-        return None
+# AWS S3 upload removed
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -136,5 +97,5 @@ def process_and_store_image(file_bytes: bytes, original_name: str) -> Tuple[str,
     """
     local_path = save_uploaded_file(file_bytes, original_name)
     preprocess_image(local_path)
-    s3_url = upload_to_s3(local_path)
+    s3_url = None  # Removed AWS integration
     return local_path, s3_url

@@ -1,0 +1,42 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Streamlit
+.streamlit/secrets.toml
+# Optional: exclude .streamlit/ entirely if you don't want to share config
+# .streamlit/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large Models (if any)
+*.h5
+*.onnx
+*.weights
+*.pb
+
+# Temporary files
+/tmp/
+*.log
+final_verify.py
+check_users.py
+test_status_vals.py
+test_assigned.py
+test_insert.py
+test_update.py
+test_update_refined.py
+test_status.py

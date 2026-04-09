@@ -50,8 +50,8 @@ try:
         model.eval()
         return model
 
-except ImportError:
-    # PyTorch not installed — provide a no-op placeholder
+except (ImportError, RuntimeError, Exception) as e:
+    # PyTorch not installed or incompatible — provide a no-op placeholder
     class PotholeCNN:  # type: ignore
         """Placeholder when PyTorch is not installed."""
         pass

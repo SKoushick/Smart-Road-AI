@@ -20,8 +20,9 @@ opencv-python-headless>=4.9.0.80
 # torch>=2.2.0
 # torchvision>=0.17.0
 
-# ─── AWS S3 (optional — app stores locally if not configured) ─────────────────
-# boto3>=1.34.0
+
 
 # ─── Utilities ────────────────────────────────────────────────────────────────
 python-dotenv>=1.0.0
+supabase>=2.0.0
+cloudinary>=1.36.0

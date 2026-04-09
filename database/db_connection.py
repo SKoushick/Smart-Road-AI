@@ -41,5 +41,49 @@ def init_db() -> None:
         )
     """)
 
+    # Alter complaints table to add new columns if they don't exist
+    try:
+        cursor.execute("ALTER TABLE complaints ADD COLUMN assigned_officer_id INTEGER")
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        cursor.execute("ALTER TABLE complaints ADD COLUMN assigned_time TEXT")
+    except sqlite3.OperationalError:
+        pass
+        
+    try:
+        cursor.execute("ALTER TABLE complaints ADD COLUMN repair_status TEXT")
+    except sqlite3.OperationalError:
+        pass
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS officers (
+            officer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            officer_name TEXT NOT NULL,
+            gmail TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            state TEXT NOT NULL,
+            assigned_region TEXT,
+            status TEXT DEFAULT 'Active'
+        )
+    """)
+
+    # Create dummy officers if none exist
+    cursor.execute("SELECT COUNT(*) as cnt FROM officers")
+    if cursor.fetchone()["cnt"] == 0:
+        demo_officers = [
+            ("Officer 1", "Koushick715@gmail.com", "Hindusthan@1", "Tamil Nadu", "Chennai", "Active"),
+            ("Officer 2", "720823108063@hit.edu.in", "Hindusthan@2", "Tamil Nadu", "Madurai", "Active"),
+            ("Officer 3", "720823108022@hit.edu.in", "Hindusthan@3", "Tamil Nadu", "Coimbatore", "Active"),
+            ("Officer 4", "720823108054@hit.edu.in", "Hindusthan@4", "Tamil Nadu", "Salem", "Active"),
+            ("Officer 5", "720823108042@hit.edu.in", "Hindusthan@5", "Tamil Nadu", "Trichy", "Active"),
+            ("Officer 6", "gvmadhubalan@gmail.com", "Hindusthan@6", "Tamil Nadu", "Kanyakumari", "Active")
+        ]
+        cursor.executemany("""
+            INSERT INTO officers (officer_name, gmail, password, state, assigned_region, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, demo_officers)
+
     conn.commit()
     conn.close()
