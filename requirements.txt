@@ -16,9 +16,11 @@ numpy>=1.26.0
 Pillow>=10.0.0
 opencv-python-headless>=4.9.0.80
 
-# ─── Deep Learning (optional — app gracefully falls back without these) ───────
-# torch>=2.2.0
-# torchvision>=0.17.0
+# ─── Deep Learning (enabled for cloud-based AI detection) ──────────────────────
+torch>=2.2.0
+torchvision>=0.17.0
+transformers>=4.37.0
+requests>=2.31.0
 
 
 

@@ -9,6 +9,7 @@ load_dotenv()
 # ===========================================================
 
 # --- Application ---
+import streamlit as st
 APP_TITLE = "Smart Road Infrastructure Monitoring System"
 APP_ICON = "🚧"
 APP_VERSION = "1.0.0"
@@ -20,16 +21,21 @@ DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "database", "
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads", "temp_images")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-
+# Helper for secure secret retrieval
+def get_secret(key, default=""):
+    try:
+        return st.secrets.get(key, os.getenv(key, default))
+    except Exception:
+        return os.getenv(key, default)
 
 # --- Email Notifications (SendGrid) ---
-SENDGRID_API_KEY      = os.getenv("SENDGRID_API_KEY", "")
-SENDGRID_SENDER_EMAIL = os.getenv("SENDGRID_SENDER_EMAIL", "")
+SENDGRID_API_KEY      = get_secret("SENDGRID_API_KEY")
+SENDGRID_SENDER_EMAIL = get_secret("SENDGRID_SENDER_EMAIL")
 
 # --- Authentication ---
-GOVT_USERNAME = os.getenv("GOVT_USERNAME", "adminsmartroad@gmail.com")
-GOVT_PASSWORD = os.getenv("GOVT_PASSWORD", "Hindusthan@63")
-GOVT_PASSKEY  = os.getenv("GOVT_PASSKEY",  "SMARTROAD2024")
+GOVT_USERNAME = get_secret("GOVT_USERNAME", "adminsmartroad@gmail.com")
+GOVT_PASSWORD = get_secret("GOVT_PASSWORD", "Hindusthan@63")
+GOVT_PASSKEY  = get_secret("GOVT_PASSKEY",  "SMARTROAD2024")
 
 # --- AI Model ---
 SEVERITY_THRESHOLDS = {
