@@ -91,6 +91,7 @@ def build_complaint_map(complaints: List[Dict[str, Any]]):
     centre_lat = sum(lats) / len(lats)
     centre_lon = sum(lons) / len(lons)
 
+    # View state
     view_state = pdk.ViewState(
         latitude=centre_lat,
         longitude=centre_lon,
@@ -99,13 +100,12 @@ def build_complaint_map(complaints: List[Dict[str, Any]]):
         bearing=0,
     )
 
-    deck = pdk.Deck(
+    return pdk.Deck(
         layers=[scatter_layer],
         initial_view_state=view_state,
         tooltip=tooltip,
-        map_style="mapbox://styles/mapbox/dark-v10",
+        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
     )
-    return deck
 
 
 def build_heatmap(complaints: List[Dict[str, Any]]):
@@ -143,5 +143,5 @@ def build_heatmap(complaints: List[Dict[str, Any]]):
     return pdk.Deck(
         layers=[layer],
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/dark-v10",
+        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
     )
