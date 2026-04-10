@@ -434,7 +434,7 @@ with right_col:
         ("🗺️", "PyDeck",      "3-D map visualisation"),
         ("📍", "Geopy",       "Location geocoding"),
         ("🤖", "PyTorch",     "AI / CNN model"),
-        ("🗄️", "SQLite",      "Local metadata DB"),
+        ("🗄️", "Supabase",     "Serverless Postgres DB"),
     ]
     for icon, name, desc in tech:
         st.markdown(f"""
@@ -446,6 +446,71 @@ with right_col:
             <span style='color:#475569; font-size:0.8rem; margin-left:auto;'>{desc}</span>
         </div>
         """, unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Proposed Solutions & Future Roadmap
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown('<div class="sec-heading">Proposed Future Roadmap</div>', unsafe_allow_html=True)
+
+r_col1, r_col2, r_col3 = st.columns(3)
+
+with r_col1:
+    st.markdown("""
+    <div style='background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 25px; border-radius: 20px; height: 100%;'>
+        <div style='font-size: 2rem; margin-bottom: 15px;'>📡</div>
+        <h4 style='color: #818cf8; margin-bottom: 10px;'>IoT Predictive Maintenance</h4>
+        <p style='color: #94a3b8; font-size: 0.9rem;'>Integration with vehicle vibration sensors to automatically detect potholes without human reporting, using real-time telemetry.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with r_col2:
+    st.markdown("""
+    <div style='background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); padding: 25px; border-radius: 20px; height: 100%;'>
+        <div style='font-size: 2rem; margin-bottom: 15px;'>💰</div>
+        <h4 style='color: #c084fc; margin-bottom: 10px;'>Automated Cost Estimation</h4>
+        <p style='color: #94a3b8; font-size: 0.9rem;'>AI algorithms to calculate pothole depth and volume from photos to estimate materials and labor costs for municipal budgeting.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with r_col3:
+    st.markdown("""
+    <div style='background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); padding: 25px; border-radius: 20px; height: 100%;'>
+        <div style='font-size: 2rem; margin-bottom: 15px;'>⛓️</div>
+        <h4 style='color: #f472b6; margin-bottom: 10px;'>Blockchain Verification</h4>
+        <p style='color: #94a3b8; font-size: 0.9rem;'>Utilizing Smart Contracts to verify road repairs, ensuring transparency in government spending and contractor accountability.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Strategic Benefits
+# ══════════════════════════════════════════════════════════════════════════════
+st.markdown('<div class="sec-heading">Strategic Implementation Benefits</div>', unsafe_allow_html=True)
+
+b_col1, b_col2 = st.columns(2)
+
+with b_col1:
+    st.markdown("""
+    <div style='background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 10px;'>
+        <strong style='color: #f8fafc;'>📉 Economic Efficiency</strong><br>
+        <span style='color: #94a3b8; font-size: 0.85rem;'>Reduces road damage liability claims and lowers vehicle maintenance costs for citizens by 25%.</span>
+    </div>
+    <div style='background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px;'>
+        <strong style='color: #f8fafc;'>🛡️ Public Safety Architecture</strong><br>
+        <span style='color: #94a3b8; font-size: 0.85rem;'>Decreases road accidents caused by structural failures through ultra-rapid AI-driven dispatching.</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with b_col2:
+    st.markdown("""
+    <div style='background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; margin-bottom: 10px;'>
+        <strong style='color: #f8fafc;'>🏙️ Smart City Scalability</strong><br>
+        <span style='color: #94a3b8; font-size: 0.85rem;'>Seamless integration with existing municipal GIS (Geographic Information Systems) and city infrastructure audits.</span>
+    </div>
+    <div style='background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px;'>
+        <strong style='color: #f8fafc;'>🌱 Environmental Sustainability</strong><br>
+        <span style='color: #94a3b8; font-size: 0.85rem;'>Optimizes repair routing for heavy machinery, reducing the carbon footprint of structural maintenance operations.</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
